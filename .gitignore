@@ -1,0 +1,14 @@
+.idea/
+.DS_Store
+**/.DS_Store
+config/*.yaml
+server/dvpp
+/go-plugins
+scripts/
+glide.*
+core/
+/config/*/
+/venv
+/.python-version
+/tests
+/start

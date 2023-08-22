@@ -1,0 +1,70 @@
+package models
+
+import (
+	"encoding/hex"
+	"fmt"
+	"sort"
+	"testing"
+
+	"github.com/ThinkiumGroup/go-common"
+	"github.com/stephenfire/go-rtl"
+)
+
+func TestRewardRequests(t *testing.T) {
+	rs := make(RewardRequests, 100)
+	for i := 0; i < len(rs); i++ {
+		cid := i % 4
+		epoch := i / 4
+		if i%10 == 0 {
+			continue
+		}
+		rs[i] = &RewardRequest{ChainId: common.ChainID(cid), Epoch: common.EpochNum(epoch)}
+	}
+	fmt.Printf("%+v\n", rs)
+	sort.Sort(rs)
+	fmt.Printf("%+v\n", rs)
+}
+
+func TestAttendanceRecord_Hash(t *testing.T) {
+	size := 10
+	nids := make(common.NodeIDs, size)
+	for i := 0; i < size; i++ {
+		nids[i] = common.BytesToNodeID(common.RandomBytes(common.NodeIDBytes))
+	}
+	record := NewAttendanceRecord(23, nil, nids...)
+	h1, err := record.Hash()
+	if err != nil {
+		t.Fatalf("1.Hash() failed: %v", err)
+	}
+	if h1 == nil {
+		t.Fatal("1.Hash()==nil")
+	}
+	t.Logf("1: %+v, %v", record, record.nodeIdxs)
+	// touch to make nodeIdxs
+	record.dataNodeIdx(nids[0])
+	h2, err := record.Hash()
+	if err != nil {
+		t.Fatalf("2.Hash() failed: %v", err)
+	}
+	if h1 == nil {
+		t.Fatal("2.Hash()==nil")
+	}
+	t.Logf("2: %+v, %v", record, record.nodeIdxs)
+	if *h1 != *h2 {
+		t.Fatalf("h1(%x) != h2(%x)", h1[:], h2[:])
+	}
+	t.Logf("hash check: %x", h1[:])
+}
+
+func TestRewardRequest_AuditResult(t *testing.T) {
+	bs, _ := hex.DecodeString("9a009ae141043833762f08a014e8effe7291ec32bca9448b7fb6566283827173d40bd5a66f58c7e57c897c2fb473ce77b25059e01e7e432a268096eed0c2bfec37839b33a601e1410479d260d785858034d64641b9a5867bd08e3f6cae9a3f18e09dfd1a238808b97093d74a8f1a15d9cbab68b005383a2637cce73110f3dfb5faea0a7c371f0976b9e1410496dc94580e0eadd78691807f6eac9759b9964daa8b46da4378902b040e0eb102cb48413308d2131e9e5557321f30ba9287794f689854e6d2e63928a082e79286e14104975cea3906ea4f4f2cab617f05a89d70b96f99d8c18747050bb93ab885cc546a2af022ff480101f017885f6b9511e4e1e2a1e4dc533ea30f88b294e34c275767e141049855b69ea2ff6b419de14b2ba18910e2427d251a3ffa453d9307a01dbabc213ef08cfad7459538dac14407046048bdd9f936ba317708b3f07a62782a2be6cca7e14104a93b150f11c422d8700554859281be8e34a91a859e0e021af186002c7e4a2661ea2467a63b417030d68e2fdddeb4342943dff13225da77124abf912fd092f71fe14104d0c7107542af7e0019e1340a77a00131d60f49f5543de76b1d5768660e6d694b5dee3e206049bf0009d2859db0b7378240667d85eeb8138426efe9fd3568ebe3e14104d53eddbbb20a4bdd4d2ca39af0a9b7b90abdba10180c69096fa7d10e0b7ce79a413a53dae1a6686e72f00b10e0645b1819bf8063f32292b3a6eac1ba2d111cc8e14104eba6f895f3e955582f10fc0f19efee43e1d3c2ee4240eb6fe106aaa387e6357e2a6a82f21624a5c0ffd9b47d00ab984206baec8614ee4d8bab1bdabe0435fea2e14104f236c00e5c1fd175e2ecfe3ccc29dcf27caafe82d4f532b20b64e34b0bb1d132ffd5efaa8e3b2316ccf3f4d9b2112213b01c792f107bd0565be7ac3d506bf31f058925c0e1d9df01cbe4da1d2558795051e9995c8861d78d80c623b4ce8048b4956d5947c0f0cd7037fb439a530553e31321264ea0ab66f03e2f3610a270d1ba1b3033138000a2176f800080d40b70e6f67512bcd07b7d1cbbd04dbbfadfbeaf37c06f32d271b3c524b11767658a93c53d78782fff9e3a7bd77545c4b3362b9b5e4680c0e56fd7dacb02664ebe859b60170954dd14826beb42ff6b7a8292e869637b56c8c0e56fd7dacb02664ebe859b60170954dd14826beb42ff6b7a8292e869637b56c8d442a64048d4235b1cbe7eb04ddb7a81d5666857c605c038d6c258909c8cd425dd5066d0d295a3137289a908a8614c98f21be8300d4ba7c038d6c258909c8cd425dd5066d0d295a3137289a908a8614c98f21be8300d4ba7808080c0acf1890a60e805815cbf6e93fdb9f7a0184bc51290a39802e0c67e961ab41f35c01f17d0958c00f27cc875f5e0315bc912a287e4a850b9bdd2bb6fc0bade7215708080808080c03a7f989b7f7197abc1967b8ff4196abe7bbc1659132e37ef226f340003617e36a463cffc198080808005c0301393d3b6e8c411f22a868483f7696cbe1bc92fc3f286d9fa9ea18889df11e58080c0977c7282d85244e48b80accd37fbc0e199b53e3fc6e85e3f1519b49eaf11412c9605b17dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff92e140025779691bd93cc460e761ad2e8f5900a33a47112322c5503ee5d944e3aa7445b4efbb544881c13284d304c8c8cf0f0804ddc498be550555776fe15b714406cae140e90a151759bf070969aae664e00502bb08568c85a73874492a3ec480c5178d5da29c790896fc62106e32d172819dec94202ff90f3b7ba3e6adf38508bc58cf4392a2038ea2038e920102b1fafffffdfffffeffffffffffffffffffbffffffbfffffffffffffdffffffffffffffffffdfffffffffffffffffffffffffffffffffdfffffffffffffffffffffffdfffffffffffffffffffffffffefffffffffffffffdfffffffffffffffffffffffffffbfffffffffeffffffffffffffffffffffffffffffffffffffffffffffffffffffffbfffffff7fffffffffffffffffffffff7ffffc000300000000003fffff0003fffbffffffffffeffeffffffdfff7fff7ffefb67fffffffffffffffffffffffffffffffffffffffffffffc000ffffffffffffffffffffffffffeffffffffffffbffffffffffbfffffffbfffffffffffffffffffffffff80809294a1ff930080c2000080f0000ee1d9df01cbe4da1d2558795051e9995c8861d78d80c623b4ce8048b4956d59476b16b9c36f507694759961f325e64b4311ea62919e088974a2984b9b8691681b8cf2fe3d8c592b5cd40e77333101a1e764f1ccfff18900f20948398e13aee084cee6b28f4c7524afc1dbf6c4f1975e0f10ef99bb06960e0a4180f47ab0e6dc45c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470c5541aaec22291019fd51a667b3ce295d77d38a59e18a4019d2ff388bab87c8bc490c9008ba389ee7aa7846b74fd08fad8d162e6c769e8c3f6df3d9f03f4d087c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4709ca732a065cd1096b7cd43d69f17a1e3463b58deda0038a2b332d2d81c4fa83960711a2db685668d7d159ed563adb714748f71b219749e9f015e38f9cfcfc16aca592e13f43bf840f5eb2fa9b1a38a898be868dbe5d913f38032e3f0062f0dd3c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4705688dddf78fbbe72a861d050fd1c9b6420c23361769ce331cfd8bfa5d026ed7ac5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4700002176f0001000d00329431930080c20000c084bab4e7009f08940db7ff4f0c0814c7dd258c3ebb78bacdbe1375d346743d14810006807a64ebfa418ee4aaf97088b1a3895337d8edc25d429a50bc63729d07b64db65c9c63072059bd149a80d27bdf8a3dfc646a60733f988f27433dbeb9d8326e96a651de4dace851e91a3b6033c499ba1a4691ebb405fb7e56d52d75b16d1c615ef34ed8e0210ceef98c9d5a6e945bc40b4f417f320d60540e7daf5381d7a859c744378da594ce6d087e45a2e170b1516e4a8ac5db9c00d02339e7135c3902703f4698ab60d3b7b73f7001b123616597d92ebd4809b10c73593667d1716d704340000101a2177001")
+	req := new(RewardRequest)
+	if err := rtl.Unmarshal(bs, req); err != nil {
+		t.Fatalf("%v", err)
+	}
+	countMap, penaltyMap, err := req.AuditResult()
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	t.Logf("count: %v, penalty: %v", countMap, penaltyMap)
+}
